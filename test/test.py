@@ -47,11 +47,9 @@ async def feed_and_check(dut, model, sequence):
         dut.ui_in.value = val
         model.push_data(val)
         
-        # Calculate what the hardware should output 2 cycles from now
         future_expected = model.get_expected_trigger()
         history.append(future_expected)
         
-        # Pull what the hardware should output RIGHT NOW
         current_expected = history.pop(0)
         
         await ClockCycles(dut.clk, 1)
@@ -66,12 +64,17 @@ async def feed_and_check(dut, model, sequence):
         last_val = sequence[-1]
         dut.ui_in.value = last_val
         model.push_data(last_val)
+        
         history.append(model.get_expected_trigger())
         current_expected = history.pop(0)
         
         await ClockCycles(dut.clk, 1)
         await FallingEdge(dut.clk)
+        
         actual_trigger = int(dut.uo_out.value) & 0b1
+        
+        # Added the missing print statement here so you can see the final triggers!
+        dut._log.info(f"FLUSH: {last_val:3d} | Expected: {current_expected} | Hardware: {actual_trigger}")
         assert actual_trigger == current_expected, "Mismatch during pipeline flush!"
 
 
@@ -83,7 +86,9 @@ async def test_bms_golden_vectors(dut):
     dut._log.info("Starting Dual-Mode BMS ASIC Test")
     
     model = BMSModel()
-    clock = Clock(dut.clk, 100, units="ns")
+    
+    # FIXED: Changed 'units' to 'unit' to prevent the Python DeprecationWarning crash
+    clock = Clock(dut.clk, 100, unit="ns")
     cocotb.start_soon(clock.start())
 
     dut.ena.value = 1
