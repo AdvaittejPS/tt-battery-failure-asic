@@ -107,12 +107,8 @@ async def test_bms_golden_vectors(dut):
     therm_sequence = [5, 5, 5, 5, 5, 100, 120, 140]
     await feed_and_check(dut, model, therm_sequence)
 
-    dut._log.info("All Golden Vector Tests Passed! Silicon perfectly matches AI.")
+dut._log.info("All Golden Vector Tests Passed!")
     
-    # ─────────────────────────────────────────────────────────
-    # TEARDOWN FLUSH (Prevents Simulator Crash on Exit)
-    # ─────────────────────────────────────────────────────────
-    dut._log.info("Flushing logic gates to zero before simulator shutdown...")
-    dut.rst_n.value = 0
-    dut.ui_in.value = 0
-    await ClockCycles(dut.clk, 20)
+    # Final safety: wait long enough for all signals to go quiet
+    await ClockCycles(dut.clk, 50)
+    dut._log.info("Simulation complete. Exiting cleanly.")
