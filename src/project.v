@@ -174,7 +174,7 @@ endmodule
 // ──────────────────────────────────────────────────────────────────────────────
 // 4. TINY TAPEOUT TOP WRAPPER
 // ──────────────────────────────────────────────────────────────────────────────
-module tt_um_df_top (
+module tt_um_advaittej_bms (
     // DO NOT CHANGE THESE NAMES!!
     // The factory tools require these exact port definitions
     input  wire [7:0] ui_in,    // Dedicated inputs
