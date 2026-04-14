@@ -22,7 +22,6 @@ class BMSModel:
             self.window.append(val)  
 
     def get_expected_trigger(self):
-        # Hardware Safety Interlock: don't trigger until pipeline is full
         if self.window[0] == 0:
             return 0
 
@@ -36,11 +35,7 @@ class BMSModel:
         mac_sum = sum(w * d for w, d in zip(weights, self.window))
         return 1 if mac_sum > threshold else 0
 
-
-# Helper function to feed data and handle the 2-cycle hardware synchronizer delay
 async def feed_and_check(dut, model, sequence):
-    # The double-flop synchronizer causes a 2-clock cycle delay.
-    # We populate the history queue with 0s to represent the pipeline filling.
     history = [0, 0] 
     
     for val in sequence:
@@ -49,7 +44,6 @@ async def feed_and_check(dut, model, sequence):
         
         future_expected = model.get_expected_trigger()
         history.append(future_expected)
-        
         current_expected = history.pop(0)
         
         await ClockCycles(dut.clk, 1)
@@ -59,7 +53,6 @@ async def feed_and_check(dut, model, sequence):
         dut._log.info(f"Input: {val:3d} | Expected: {current_expected} | Hardware: {actual_trigger}")
         assert actual_trigger == current_expected, f"Mismatch at input {val}!"
 
-    # Flush the remaining delayed cycles out of the hardware
     for _ in range(2):
         last_val = sequence[-1]
         dut.ui_in.value = last_val
@@ -72,11 +65,8 @@ async def feed_and_check(dut, model, sequence):
         await FallingEdge(dut.clk)
         
         actual_trigger = int(dut.uo_out.value) & 0b1
-        
-        # Added the missing print statement here so you can see the final triggers!
         dut._log.info(f"FLUSH: {last_val:3d} | Expected: {current_expected} | Hardware: {actual_trigger}")
         assert actual_trigger == current_expected, "Mismatch during pipeline flush!"
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # TEST SUITE
@@ -86,8 +76,6 @@ async def test_bms_golden_vectors(dut):
     dut._log.info("Starting Dual-Mode BMS ASIC Test")
     
     model = BMSModel()
-    
-    # FIXED: Changed 'units' to 'unit' to prevent the Python DeprecationWarning crash
     clock = Clock(dut.clk, 100, unit="ns")
     cocotb.start_soon(clock.start())
 
@@ -95,7 +83,6 @@ async def test_bms_golden_vectors(dut):
     dut.ui_in.value = 0
     dut.uio_in.value = 0
 
-    # --- PHASE 1: RADIOGRAPHY MODE TEST ---
     dut._log.info("--- TESTING RADIOGRAPHY MODE ---")
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 10)
@@ -108,7 +95,6 @@ async def test_bms_golden_vectors(dut):
     rad_sequence = [150, 150, 150, 150, 150, 80, 70, 60]
     await feed_and_check(dut, model, rad_sequence)
 
-    # --- PHASE 2: THERMAL MODE TEST ---
     dut._log.info("--- TESTING THERMAL MODE ---")
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 10)
@@ -122,3 +108,11 @@ async def test_bms_golden_vectors(dut):
     await feed_and_check(dut, model, therm_sequence)
 
     dut._log.info("All Golden Vector Tests Passed! Silicon perfectly matches AI.")
+    
+    # ─────────────────────────────────────────────────────────
+    # TEARDOWN FLUSH (Prevents Simulator Crash on Exit)
+    # ─────────────────────────────────────────────────────────
+    dut._log.info("Flushing logic gates to zero before simulator shutdown...")
+    dut.rst_n.value = 0
+    dut.ui_in.value = 0
+    await ClockCycles(dut.clk, 20)
