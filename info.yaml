@@ -16,7 +16,7 @@ project:
   # List your project's source files here.
   # Assuming you saved the monolithic code into a file named tt_um_df_top.v
   source_files:
-    - "tt_um_df_top.v"
+    - "project.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
