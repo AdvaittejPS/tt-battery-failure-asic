@@ -2,12 +2,9 @@
 `timescale 1ns / 1ps
 
 module tb ();
-
-  // Simulation controls
   initial begin
     $display("ASIC Simulation Started");
-    // Waveform dumping disabled to prevent 'Exit Code 1' simulator crash
-    // $dumpfile("tb.fst");
+    // $dumpfile("tb.fst"); // Disabled for stability
     // $dumpvars(0, tb);
     #1; 
   end
@@ -26,19 +23,11 @@ module tb ();
   wire VGND = 1'b0;
 `endif
 
-    tt_um_advaittej_bms user_project (
+  tt_um_advaittej_bms user_project (
 `ifdef GL_TEST
-        .VPWR(VPWR),
-        .VGND(VGND),
+    .VPWR(VPWR), .VGND(VGND),
 `endif
-        .ui_in  (ui_in),    
-        .uo_out (uo_out),   
-        .uio_in (uio_in),   
-        .uio_out(uio_out),  
-        .uio_oe (uio_oe),   
-        .ena    (ena),      
-        .clk    (clk),      
-        .rst_n  (rst_n)     
-    );
-
+    .ui_in(ui_in), .uo_out(uo_out), .uio_in(uio_in), 
+    .uio_out(uio_out), .uio_oe(uio_oe), .ena(ena), .clk(clk), .rst_n(rst_n)
+  );
 endmodule
