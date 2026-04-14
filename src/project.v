@@ -145,28 +145,32 @@ module tt_um_advaittej_bms (
     assign uo_out[0]   = trigger_alarm_internal; 
     assign uo_out[7:1] = 7'b0000000; 
 
-    reg [7:0] sync_sensor_data [0:1];
-    reg       sync_mode_sel    [0:1];
+    // FIXED: Flattened the multidimensional arrays to bypass Icarus simulator crash
+    reg [7:0] sync_sensor_data_0;
+    reg [7:0] sync_sensor_data_1;
+    reg       sync_mode_sel_0;
+    reg       sync_mode_sel_1;
 
     always @(posedge clk or posedge reset_active) begin
         if (reset_active) begin
-            sync_sensor_data[0] <= 8'b0;
-            sync_sensor_data[1] <= 8'b0;
-            sync_mode_sel[0]    <= 1'b0;
-            sync_mode_sel[1]    <= 1'b0;
+            sync_sensor_data_0 <= 8'b0;
+            sync_sensor_data_1 <= 8'b0;
+            sync_mode_sel_0    <= 1'b0;
+            sync_mode_sel_1    <= 1'b0;
         end else begin
-            sync_sensor_data[0] <= sensor_data;
-            sync_sensor_data[1] <= sync_sensor_data[0];
-            sync_mode_sel[0]    <= mode_sel_btn;
-            sync_mode_sel[1]    <= sync_mode_sel[0];
+            sync_sensor_data_0 <= sensor_data;
+            sync_sensor_data_1 <= sync_sensor_data_0;
+            
+            sync_mode_sel_0    <= mode_sel_btn;
+            sync_mode_sel_1    <= sync_mode_sel_0;
         end
     end
 
     df_digital_filter digital_filter_inst(
         .CLK(clk),
         .nRST(rst_n), 
-        .mode_sel(sync_mode_sel[1]),
-        .datain(sync_sensor_data[1]),
+        .mode_sel(sync_mode_sel_1),
+        .datain(sync_sensor_data_1),
         .trigger_alarm(trigger_alarm_internal)
     );
 
