@@ -1,9 +1,9 @@
 # Tiny Tapeout project information
 project:
-  title:        "V-SPACE Demo Hardware Stopwatch"
+  title:        "Dual-Mode Battery Failure ASIC"
   author:       "Advaittej"
   discord:      "" 
-  description:  "1-second interval stopwatch with start/pause toggled via input switch."
+  description:  "Event-driven, approximate computing MAC filter for detecting thermal runaway via radiography and thermal ejecta."
   language:     "Verilog" 
   clock_hz:     10000000 
 
@@ -11,36 +11,37 @@ project:
   tiles: "1x1" 
 
   # Your top module name must start with "tt_um_". 
-  top_module:  "tt_um_advaittej_stopwatch"
+  top_module:  "tt_um_advaittej_bms"
 
   # List your project's source files here.
+  # Assuming you saved the monolithic code into a file named tt_um_df_top.v
   source_files:
-    - "project.v"
+    - "tt_um_df_top.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
   # Inputs
-  ui[0]: "Start / Pause Button"
-  ui[1]: ""
-  ui[2]: ""
-  ui[3]: ""
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: ""
-  ui[7]: ""
+  ui[0]: "Sensor Data Bit 0 (LSB)"
+  ui[1]: "Sensor Data Bit 1"
+  ui[2]: "Sensor Data Bit 2"
+  ui[3]: "Sensor Data Bit 3"
+  ui[4]: "Sensor Data Bit 4"
+  ui[5]: "Sensor Data Bit 5"
+  ui[6]: "Sensor Data Bit 6"
+  ui[7]: "Sensor Data Bit 7 (MSB)"
 
   # Outputs
-  uo[0]: "Segment A"
-  uo[1]: "Segment B"
-  uo[2]: "Segment C"
-  uo[3]: "Segment D"
-  uo[4]: "Segment E"
-  uo[5]: "Segment F"
-  uo[6]: "Segment G"
+  uo[0]: "Trigger Alarm (Hardware Interrupt)"
+  uo[1]: "Tied Low"
+  uo[2]: "Tied Low"
+  uo[3]: "Tied Low"
+  uo[4]: "Tied Low"
+  uo[5]: "Tied Low"
+  uo[6]: "Tied Low"
   uo[7]: "Tied Low"
 
   # Bidirectional pins
-  uio[0]: ""
+  uio[0]: "Mode Select (0=Radiography, 1=Thermal)"
   uio[1]: ""
   uio[2]: ""
   uio[3]: ""
