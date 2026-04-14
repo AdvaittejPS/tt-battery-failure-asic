@@ -3,11 +3,12 @@
 
 module tb ();
 
-  // Dump the signals to a FST file.
+  // Simulation controls
   initial begin
-    $display("Force dumping data now");
-    $dumpfile("tb.fst");
-    $dumpvars(0, tb);
+    $display("ASIC Simulation Started");
+    // Waveform dumping disabled to prevent 'Exit Code 1' simulator crash
+    // $dumpfile("tb.fst");
+    // $dumpvars(0, tb);
     #1; 
   end
 
@@ -25,7 +26,6 @@ module tb ();
   wire VGND = 1'b0;
 `endif
 
-    // Instantiating your specific module name
     tt_um_advaittej_bms user_project (
 `ifdef GL_TEST
         .VPWR(VPWR),
