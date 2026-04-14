@@ -92,25 +92,31 @@ module df_digital_filter
         end
     end
 
-    wire signed [8:0] w0, w1, w2, w3;
-    wire signed [15:0] threshold;
-
-    assign w0 = mode_sel ? 9'sd111 :  9'sd69;
-    assign w1 = mode_sel ? 9'sd11  : -9'sd127;
-    assign w2 = mode_sel ? 9'sd127 :  9'sd63;
-    assign w3 = mode_sel ? 9'sd99  : -9'sd118;
-    
-    assign threshold = mode_sel ? 16'sd24765 : -16'sd12000;
-
     wire signed [8:0] s_val1 = {1'b0, val1};
     wire signed [8:0] s_val2 = {1'b0, val2};
     wire signed [8:0] s_val3 = {1'b0, val3};
     wire signed [8:0] s_val4 = {1'b0, val4};
 
-    wire signed [17:0] p0 = s_val4 * w0;
-    wire signed [17:0] p1 = s_val3 * w1;
-    wire signed [17:0] p2 = s_val2 * w2;
-    wire signed [17:0] p3 = s_val1 * w3;
+    // ─────────────────────────────────────────────────────────
+    // CONSTANT-FOLDED MULTIPLIERS (Massive Cell Count Reduction)
+    // ─────────────────────────────────────────────────────────
+    // Pre-calculate Radiography paths
+    wire signed [17:0] p0_rad = s_val4 * 18'sd69;
+    wire signed [17:0] p1_rad = s_val3 * -18'sd127;
+    wire signed [17:0] p2_rad = s_val2 * 18'sd63;
+    wire signed [17:0] p3_rad = s_val1 * -18'sd118;
+
+    // Pre-calculate Thermal paths
+    wire signed [17:0] p0_thm = s_val4 * 18'sd111;
+    wire signed [17:0] p1_thm = s_val3 * 18'sd11;
+    wire signed [17:0] p2_thm = s_val2 * 18'sd127;
+    wire signed [17:0] p3_thm = s_val1 * 18'sd99;
+
+    // Multiplex the highly-optimized results
+    wire signed [17:0] p0 = mode_sel ? p0_thm : p0_rad;
+    wire signed [17:0] p1 = mode_sel ? p1_thm : p1_rad;
+    wire signed [17:0] p2 = mode_sel ? p2_thm : p2_rad;
+    wire signed [17:0] p3 = mode_sel ? p3_thm : p3_rad;
 
     wire signed [17:0] fir_sum;
     df_approx_mac_tree approx_accumulator (
@@ -118,6 +124,7 @@ module df_digital_filter
         .fir_sum(fir_sum)
     );
 
+    wire signed [15:0] threshold = mode_sel ? 16'sd24765 : -16'sd12000;
     assign trigger_alarm = (fir_sum > threshold) && (val4 != 8'd0);
 endmodule
 
@@ -145,7 +152,6 @@ module tt_um_advaittej_bms (
     assign uo_out[0]   = trigger_alarm_internal; 
     assign uo_out[7:1] = 7'b0000000; 
 
-    // FIXED: Flattened the multidimensional arrays to bypass Icarus simulator crash
     reg [7:0] sync_sensor_data_0;
     reg [7:0] sync_sensor_data_1;
     reg       sync_mode_sel_0;
@@ -160,7 +166,6 @@ module tt_um_advaittej_bms (
         end else begin
             sync_sensor_data_0 <= sensor_data;
             sync_sensor_data_1 <= sync_sensor_data_0;
-            
             sync_mode_sel_0    <= mode_sel_btn;
             sync_mode_sel_1    <= sync_mode_sel_0;
         end
