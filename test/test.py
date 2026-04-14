@@ -22,6 +22,7 @@ class BMSModel:
             self.window.append(val)  
 
     def get_expected_trigger(self):
+        # Safety: don't trigger until pipeline is full
         if self.window[0] == 0:
             return 0
 
@@ -107,8 +108,10 @@ async def test_bms_golden_vectors(dut):
     therm_sequence = [5, 5, 5, 5, 5, 100, 120, 140]
     await feed_and_check(dut, model, therm_sequence)
 
-dut._log.info("All Golden Vector Tests Passed!")
+    dut._log.info("All Golden Vector Tests Passed! Silicon perfectly matches AI.")
     
-    # Final safety: wait long enough for all signals to go quiet
-    await ClockCycles(dut.clk, 50)
+    # ─────────────────────────────────────────────────────────
+    # FINAL TEARDOWN (FIXED INDENTATION)
+    # ─────────────────────────────────────────────────────────
     dut._log.info("Simulation complete. Exiting cleanly.")
+    await ClockCycles(dut.clk, 50)
